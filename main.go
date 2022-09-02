@@ -16,7 +16,7 @@ import (
 )
 
 var (
-	host = "localhost:3000"
+	host = ":3000"
 )
 
 const (
@@ -150,6 +150,6 @@ func main() {
 	//
 	http.Handle("/", router)
 	//
-	fmt.Printf("Started running on %s\n", host)
-	fmt.Println(http.ListenAndServe(host, nil))
+	fmt.Printf("Started running on %s\n", ":3000")
+	fmt.Println(http.ListenAndServe(":3000", nil))
 }
