@@ -21,19 +21,12 @@ var (
 
 const (
 	script = `<!DOCTYPE html><html><head><script>
-  if (!window.opener) {
-    window.opener = {
-      postMessage: function(action, origin) {
-        console.log(action, origin);
-      }
-    }
-  }
   (function(status, provider, result) {
     function recieveMessage(e) {
       console.log("Recieve message:", e);
       // send message to main window with da app
       window.opener.postMessage(
-        "authorization:" + provider + ":" + status + ":" + result,
+        "authorization:" + provider + ":" + status + ":" + JSON.stringify(result),
         e.origin
       );
     }
@@ -93,7 +86,7 @@ func handleCallbackProvider(res http.ResponseWriter, req *http.Request) {
 		status = "success"
 		result = fmt.Sprintf(`{"token":"%s", "provider":"%s"}`, user.AccessToken, user.Provider)
 	}
-	res.Header().Set("Content-Type", "text/html; charset=utf-8")
+	//res.Header().Set("Content-Type", "text/html; charset=utf-8")
 	res.WriteHeader(http.StatusOK)
 	res.Write([]byte(fmt.Sprintf(script, status, provider, result)))
 }
