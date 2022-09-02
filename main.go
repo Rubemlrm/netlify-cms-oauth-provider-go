@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/gorilla/pat"
+	"github.com/gorilla/mux"
 	"github.com/markbates/goth"
 	"github.com/markbates/goth/gothic"
 	"github.com/markbates/goth/providers/bitbucket"
@@ -53,6 +53,12 @@ func handleMain(res http.ResponseWriter, req *http.Request) {
 	res.Header().Set("Content-Type", "text/html; charset=utf-8")
 	res.WriteHeader(http.StatusOK)
 	res.Write([]byte(``))
+}
+
+func handleTest(res http.ResponseWriter, req *http.Request) {
+	res.Header().Set("Content-Type", "text/html; charset=utf-8")
+	res.WriteHeader(http.StatusOK)
+	res.Write([]byte(`teste`))
 }
 
 // GET /auth Page  redirecting after provider get param
@@ -140,16 +146,14 @@ func init() {
 }
 
 func main() {
-	router := pat.New()
-	router.Get("/callback/{provider}", handleCallbackProvider)
-	router.Get("/auth/{provider}", handleAuthProvider)
-	router.Get("/auth", handleAuth)
-	router.Get("/refresh", handleRefresh)
-	router.Get("/success", handleSuccess)
-	router.Get("/", handleMain)
+	router := mux.NewRouter()
+	router.HandleFunc("/callback/{provider}", handleCallbackProvider).Methods(http.MethodGet)
+	router.HandleFunc("/auth/{provider}", handleAuthProvider).Methods(http.MethodGet)
+	router.HandleFunc("/auth", handleAuth).Methods(http.MethodGet)
+	router.HandleFunc("/refresh", handleRefresh).Methods(http.MethodGet)
+	router.HandleFunc("/success", handleSuccess).Methods(http.MethodGet)
+	router.HandleFunc("/", handleMain).Methods(http.MethodGet)
+	router.HandleFunc("/test", handleTest).Methods(http.MethodGet)
 	//
-	http.Handle("/", router)
-	//
-	fmt.Printf("Started running on %s\n", ":3000")
-	fmt.Println(http.ListenAndServe(":3000", nil))
+	http.ListenAndServe(":3000", router)
 }
