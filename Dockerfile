@@ -18,10 +18,10 @@ FROM gcr.io/distroless/base-debian11
 
 WORKDIR /
 
-COPY --from=build /app/bin/netlify-cms-oauth-provider /netlify-cms-oauth-provider
+COPY --from=build /app/bin/netlify-cms-oauth-provider /app/netlify-cms-oauth-provider
 
 EXPOSE 3000
 
 USER nonroot:nonroot
 
-ENTRYPOINT ["/netlify-cms-oauth-provider"]
+ENTRYPOINT ["/app/netlify-cms-oauth-provider"]

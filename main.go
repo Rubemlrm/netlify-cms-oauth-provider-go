@@ -6,13 +6,13 @@ import (
 	"os"
 
 	"github.com/gorilla/mux"
+	"github.com/joho/godotenv"
 	"github.com/markbates/goth"
 	"github.com/markbates/goth/gothic"
 	"github.com/markbates/goth/providers/bitbucket"
 	"github.com/markbates/goth/providers/github"
 	"github.com/markbates/goth/providers/gitlab"
-
-	"github.com/Rubemlrm/netlify-cms-oauth-provider-go/dotenv"
+	log "github.com/sirupsen/logrus"
 )
 
 var (
@@ -45,19 +45,16 @@ const (
 func handleMain(res http.ResponseWriter, req *http.Request) {
 	res.Header().Set("Content-Type", "text/html; charset=utf-8")
 	res.WriteHeader(http.StatusOK)
-	res.Write([]byte(``))
-}
-
-func handleTest(res http.ResponseWriter, req *http.Request) {
-	res.Header().Set("Content-Type", "text/html; charset=utf-8")
-	res.WriteHeader(http.StatusOK)
-	res.Write([]byte(`teste`))
+	_, err := res.Write([]byte(``))
+	if err != nil {
+		log.Error(fmt.Printf("HandleMain error: %s", err))
+	}
 }
 
 // GET /auth Page  redirecting after provider get param
 func handleAuth(res http.ResponseWriter, req *http.Request) {
 	url := fmt.Sprintf("%s/auth/%s", host, req.FormValue("provider"))
-	fmt.Printf("redirect to %s\n", url)
+	log.Info(fmt.Printf("redirect to %s\n", url))
 	http.Redirect(res, req, url, http.StatusTemporaryRedirect)
 }
 
@@ -88,23 +85,31 @@ func handleCallbackProvider(res http.ResponseWriter, req *http.Request) {
 	}
 	//res.Header().Set("Content-Type", "text/html; charset=utf-8")
 	res.WriteHeader(http.StatusOK)
-	res.Write([]byte(fmt.Sprintf(script, status, provider, result)))
+	_, err := res.Write([]byte(fmt.Sprintf(script, status, provider, result)))
+	if err != nil {
+		log.Error(fmt.Printf("handleCallbackProvider error: %s", err))
+	}
 }
 
 // GET /refresh
 func handleRefresh(res http.ResponseWriter, req *http.Request) {
-	fmt.Printf("refresh with '%s'\n", req)
-	res.Write([]byte(""))
+	log.Info(fmt.Printf("refresh"))
+	res.WriteHeader(http.StatusNoContent)
 }
 
 // GET /success
 func handleSuccess(res http.ResponseWriter, req *http.Request) {
-	fmt.Printf("success with '%s'\n", req)
-	res.Write([]byte(""))
+	log.Info(fmt.Printf("success\n"))
+	res.WriteHeader(http.StatusNoContent)
 }
 
 func init() {
-	dotenv.File(".env")
+	err := godotenv.Load()
+
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+
 	if hostEnv, ok := os.LookupEnv("HOST"); ok {
 		host = hostEnv
 	}
@@ -146,7 +151,9 @@ func main() {
 	router.HandleFunc("/refresh", handleRefresh).Methods(http.MethodGet)
 	router.HandleFunc("/success", handleSuccess).Methods(http.MethodGet)
 	router.HandleFunc("/", handleMain).Methods(http.MethodGet)
-	router.HandleFunc("/test", handleTest).Methods(http.MethodGet)
 	//
-	http.ListenAndServe(":3000", router)
+	err := http.ListenAndServe(":3000", router)
+	if err != nil {
+		log.Fatal(fmt.Printf("Can't start webserver with error: %s", err.Error()))
+	}
 }
